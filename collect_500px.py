@@ -24,7 +24,7 @@ images_dir = output_dir / 'images'
 log_path = output_dir / args.logfile
 keys = json.load(Path(args.keys).open())
 
-logging.basicConfig(filename=str(log_path), level=logging.DEBUG, format='%(asctime)s\n%(message)s')
+logging.basicConfig(filename=str(log_path), level=logging.WARNING, format='%(asctime)s\n%(message)s')
 
 
 # url_api = 'https://api.500px.com/v1/photos'
