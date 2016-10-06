@@ -12,6 +12,7 @@ from tqdm import tqdm
 parser = argparse.ArgumentParser()
 parser.add_argument('--output', '-o', default='out', type=str)
 parser.add_argument('--keys', '-k', default='keys.json', type=str)
+parser.add_argument('--interval', '-i', default=10, type=int)
 args = parser.parse_args()
 
 
@@ -77,9 +78,18 @@ def insert_photo(photo):
 
     taken_at = photo['taken_at']
     if taken_at is not None:
-        taken_at = taken_at.split('T')[0].split('-')
-        taken_at = list(map(int, taken_at))
-        taken_at = datetime.date(taken_at[0], taken_at[1], taken_at[2])
+        try:
+            taken_at = taken_at.split('T')[0].split('-')
+            taken_at = list(map(int, taken_at))
+            taken_at = datetime.date(taken_at[0], taken_at[1], taken_at[2])
+        except:
+            taken_at = None
+
+    country = None
+    try:
+        country = photo['location_details']['country'][0]
+    except:
+        country = None
 
 
     image, is_created = Image.create_or_get(
@@ -101,7 +111,7 @@ def insert_photo(photo):
         iso=photo['iso'],
         lens=photo['lens'],
         location=photo['location'],
-        country=photo['location_details']['country'][0] if len(photo['location_details']['country'])>0 else None,
+        country=country,
         shutter_speed=photo['shutter_speed'],
         camera=photo['camera'],
         aperture=photo['aperture'],
@@ -174,4 +184,4 @@ if __name__ == '__main__':
         for photo in photos:
             insert_photo(photo)
 
-        time.sleep(10)
+        time.sleep(args.interval)
