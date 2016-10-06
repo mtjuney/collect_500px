@@ -1,5 +1,6 @@
 import argparse
 from pathlib import Path
+import logging
 
 # from urllib import request
 import requests
@@ -13,13 +14,18 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--output', '-o', default='out', type=str)
 parser.add_argument('--keys', '-k', default='keys.json', type=str)
 parser.add_argument('--interval', '-i', default=10, type=int)
+parser.add_argument('--logfile', '-l', default='default.log', type=str)
 args = parser.parse_args()
 
 
 output_dir = Path(args.output)
 db_path = output_dir / 'metadata.db'
 images_dir = output_dir / 'images'
+log_path = output_dir / args.logfile
 keys = json.load(Path(args.keys).open())
+
+logging.basicConfig(filename=str(log_path), level=logging.DEBUG, format='%(asctime)s\n%(message)s')
+
 
 # url_api = 'https://api.500px.com/v1/photos'
 # params_ = {
@@ -179,7 +185,11 @@ if __name__ == '__main__':
 
         r = requests.get(url_api, params=params)
         data = json.loads(r.text)
-        photos = data['photos']
+        try:
+            photos = data['photos']
+        except Exception as e:
+            logging.warning(str(e) + '\n' + str(data))
+            continue
 
         for photo in photos:
             insert_photo(photo)
