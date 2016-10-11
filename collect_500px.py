@@ -10,16 +10,18 @@ import datetime
 import time
 from tqdm import tqdm
 
+from image import Image
+
 parser = argparse.ArgumentParser()
 parser.add_argument('--output', '-o', default='out', type=str)
 parser.add_argument('--keys', '-k', default='keys.json', type=str)
 parser.add_argument('--interval', '-i', default=10, type=int)
 parser.add_argument('--logfile', '-l', default='default.log', type=str)
+# parser.add_argument('--dbname', '-d', default='metadata.db', type=str)
 args = parser.parse_args()
 
 
 output_dir = Path(args.output)
-db_path = output_dir / 'metadata.db'
 images_dir = output_dir / 'images'
 log_path = output_dir / args.logfile
 keys = json.load(Path(args.keys).open())
@@ -36,43 +38,6 @@ logging.basicConfig(filename=str(log_path), level=logging.WARNING, format='%(asc
 
 url_api = 'https://api.500px.com/v1/photos/search'
 
-
-
-
-
-
-
-class Image(pw.Model):
-    identity = pw.IntegerField(primary_key=True)
-    image_url = pw.TextField()
-    rating = pw.FloatField()
-    user_id = pw.TextField()
-    times_viewed = pw.IntegerField()
-    category_id = pw.IntegerField(null=True)
-    taken_at = pw.DateField(null=True)
-    width = pw.IntegerField()
-    height = pw.IntegerField()
-    votes_count = pw.IntegerField()
-    favorites_count = pw.IntegerField()
-    comments_count = pw.IntegerField()
-    sales_count = pw.IntegerField()
-    collections_count = pw.IntegerField()
-    positive_votes_count = pw.IntegerField()
-    image_format = pw.TextField(null=True)
-    iso = pw.TextField(null=True)
-    lens = pw.TextField(null=True)
-    location = pw.TextField(null=True)
-    country = pw.TextField(null=True)
-    shutter_speed = pw.TextField(null=True)
-    camera = pw.TextField(null=True)
-    aperture = pw.TextField(null=True)
-    created_at = pw.DateField()
-    is_downloaded = pw.BooleanField(default=False)
-    image_filename = pw.TextField(null=True)
-    timestamp = pw.DateTimeField(default=datetime.datetime.now)
-
-    class Meta:
-        database = pw.SqliteDatabase(str(db_path))
 
 
 def insert_photo(photo):
@@ -145,7 +110,7 @@ def insert_photo(photo):
             iso=photo['iso'],
             lens=photo['lens'],
             location=photo['location'],
-            country=photo['location_details']['country'][0] if len(photo['location_details']['country'])>0 else None,
+            country=country,
             shutter_speed=photo['shutter_speed'],
             camera=photo['camera'],
             aperture=photo['aperture'],
@@ -161,14 +126,21 @@ if __name__ == '__main__':
 
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    if not db_path.is_file():
-        Image.create_table()
+    # params_ = {
+    #     'geo': '36.1158,140.1179,10000km',
+    #     'consumer_key': keys['ckey'],
+    #     'sort': 'created_at',
+    #     'rpp':100,
+    #     'image_size': 1600,
+    #     'only': 'Landscape'
+    # }
 
     params_ = {
-        'geo': '36.1158,140.1179,10000km',
+        'term': 'Landscape',
         'consumer_key': keys['ckey'],
         'sort': 'created_at',
-        'rpp':100
+        'rpp':100,
+        'image_size': 1080
     }
 
     r = requests.get(url_api, params=params_)
