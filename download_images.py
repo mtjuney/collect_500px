@@ -32,7 +32,7 @@ if __name__ == '__main__':
 
     print('count:', images.count())
 
-    for image in images:
+    for image in tqdm(images):
 
         filename = str(image.identity) + '.jpg'
 
