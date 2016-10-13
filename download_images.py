@@ -2,6 +2,8 @@ import argparse
 from pathlib import Path
 import logging
 import urllib
+from urllib.error import HTTPError
+import logging
 
 # from urllib import request
 import requests
@@ -24,11 +26,14 @@ output_dir = Path(args.output)
 images_dir = output_dir / 'images'
 log_path = output_dir / args.logfile
 
+logging.basicConfig(filename=str(log_path), level=logging.WARNING, format='%(asctime)s\n%(message)s')
+
+
 if __name__ == '__main__':
 
     images_dir.mkdir(parents=True, exist_ok=True)
 
-    images = Image.select().where(Image.category_id == 8)
+    images = Image.select().where(Image.category_id == 8 and not Image.is_downloaded)
 
     print('count:', images.count())
 
@@ -36,7 +41,14 @@ if __name__ == '__main__':
 
         filename = str(image.identity) + '.jpg'
 
-        filename, header = urllib.request.urlretrieve(image.image_url, filename=str(images_dir / filename))
+        try:
+            filename, header = urllib.request.urlretrieve(image.image_url, filename=str(images_dir / filename))
+        except HTTPError as e:
+            logging.warning(str(e.code) + ':' + e.reason + '\n' + image.image_url)
+            continue
+        except Exception as e:
+            logging.warning(str(e))
+            continue
 
         image.is_downloaded = True
         image.image_filename = filename
