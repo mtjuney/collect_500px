@@ -52,5 +52,6 @@ if __name__ == '__main__':
 
         image.is_downloaded = True
         image.image_filename = filename
+        image.save()
 
         time.sleep(args.interval)
