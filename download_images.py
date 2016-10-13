@@ -33,7 +33,7 @@ if __name__ == '__main__':
 
     images_dir.mkdir(parents=True, exist_ok=True)
 
-    images = Image.select().where(Image.category_id == 8 and not Image.is_downloaded)
+    images = Image.select().where(Image.category_id == 8 and Image.is_downloaded == False)
 
     print('count:', images.count())
 
